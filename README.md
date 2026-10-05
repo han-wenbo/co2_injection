@@ -15,17 +15,63 @@ with the finite-volume method and three time-stepping schemes (explicit Euler,
 backward Euler, Crank–Nicolson). This is the **sequential (single-core)**
 version; the parallel version will be compared against it.
 
-## Quick start
+## How to run
+
+### 1. Requirements
+
+Python 3.10 or newer (developed with 3.12). Check your version with
 
 ```bash
-python3.12 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-
-.venv/bin/python run_1d.py                       # 1D, interactive window
-.venv/bin/python run_2d.py                       # 2D, interactive window
-.venv/bin/python validate.py                     # compare with exact solutions
-.venv/bin/python -m pytest                       # automatic tests
+python3 --version
 ```
+
+### 2. Download the code
+
+```bash
+git clone git@github.com:han-wenbo/co2_injection.git
+cd co2_injection
+```
+
+### 3. Install the packages (only the first time)
+
+This creates a private Python environment in the folder `.venv` and installs
+NumPy, SciPy, Matplotlib, Pillow and pytest into it.
+
+macOS / Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows (PowerShell):
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Every time you open a **new terminal**, activate the environment again
+(`source .venv/bin/activate` on macOS / Linux, `.venv\Scripts\Activate.ps1` on
+Windows). Your prompt then starts with `(.venv)`.
+
+### 4. Run
+
+| command | what happens |
+|---|---|
+| `python run_1d.py` | opens the 1D window |
+| `python run_2d.py` | opens the 2D window |
+| `python run_2d.py --scenario channel` | opens the 2D window with another starting scenario |
+| `python run_2d.py --save results/2d.gif` | no window: writes an animation file (`.gif` or `.mp4`) |
+| `python run_1d.py --help` | lists all options |
+| `python validate.py` | compares with exact solutions, saves figures to `results/` |
+| `python -m pytest` | runs the automatic tests (takes about a second) |
+
+The window opens **paused at year 0: press Play**. The terminal prints the key
+numbers of the simulation (grid, time step, pressure limit) every time it
+starts or restarts.
 
 ### The interactive window
 
@@ -86,7 +132,6 @@ co2sim/                 the simulation library
 run_1d.py, run_2d.py    start the window or save an animation (fixed settings at the top)
 validate.py             accuracy and convergence checks, saves figures to results/
 tests/                  automatic tests (pytest)
-docs/guide_zh.md        reading guide in Chinese
 ```
 
 ## How the code works
