@@ -132,6 +132,9 @@ co2sim/                 the simulation library
 run_1d.py, run_2d.py    start the window or save an animation (fixed settings at the top)
 validate.py             accuracy and convergence checks, saves figures to results/
 tests/                  automatic tests (pytest)
+notes/parameters.md     every parameter: value used, literature range, source
+notes/derivation.md     step-by-step derivation from the pressure equation to the code
+notes/safety_limit_*.png  slides: how the safety limit (red line) is derived and checked
 ```
 
 ## How the code works
@@ -172,6 +175,8 @@ pressure stays at p0. `closed`: no flow through the edge (a sealed compartment).
 ## Default parameters
 
 Typical values for a deep sandstone aquifer, not one specific site (see `parameters.py`).
+[notes/parameters.md](notes/parameters.md) lists, for every value, the literature range and
+the source (USGS report SIR 2011–5083 given in the lecture, Zhou et al. 2008, Zhou & Birkholzer 2011).
 
 | symbol | meaning | value |
 |---|---|---|
@@ -182,7 +187,7 @@ Typical values for a deep sandstone aquifer, not one specific site (see `paramet
 | c_t | total compressibility (rock + brine) | 1e-9 1/Pa |
 | p0 | natural pressure at 1500 m depth | 15.45 MPa |
 | limit | 90 % of fracture pressure (17 kPa/m × 1500 m) | 22.95 MPa |
-| D = k/(φμc_t) | pressure diffusivity | ≈ 1 m²/s (pressure spreads ~5.6 km in a year) |
+| D = k/(φμc_t) | pressure diffusivity | ≈ 1 m²/s (pressure footprint √(8Dt) ≈ 16 km after a year, 70 km after 20 years) |
 | injection | per well, CO₂ density 700 kg/m³ | 1 Mt/yr ≈ 0.045 m³/s |
 
 ## Validation (`validate.py`)

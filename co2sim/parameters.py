@@ -6,8 +6,11 @@ says otherwise, e.g. `rate_mt_per_year`.
 
 The default values describe a *typical* deep saline aquifer used for CO2
 storage: a sandstone layer about 1.5 km deep and 100 m thick whose pores are
-already full of salty water (brine). They are representative textbook values,
-not the data of one specific site.
+already full of salty water (brine). They are representative values from the
+literature, not the data of one specific site. notes/parameters.md lists, for
+every value, the literature range and the source; the short tags below refer
+to that list ([B11] = Burke 2011, USGS report; [Z08] = Zhou et al. 2008;
+[ZB11] = Zhou & Birkholzer 2011).
 """
 
 from dataclasses import dataclass
@@ -34,41 +37,47 @@ class AquiferParameters:
     """
 
     # ---- rock -------------------------------------------------------------
-    # φ [-]: fraction of the rock volume that is pore space (sandstone: 0.1–0.3)
+    # φ [-]: fraction of the rock volume that is pore space.
+    # Candidate sandstones 0.05–0.35; Birkholzer-group base cases use 0.10–0.12 [Z08, ZB11].
     porosity: float = 0.20
 
-    # k [m²]: how easily fluid flows *through* the rock (good sandstone: 10–1000 mD).
+    # k [m²]: how easily fluid flows *through* the rock.
+    # 1e-13 m² (≈ 100 mD) is the base case of [Z08]; favourable targets are 1 mD – 1 D [B11].
     # This is the default value; the models also accept a k that varies in space.
     permeability: float = 100 * MILLIDARCY
 
-    # H [m]: vertical thickness of the aquifer layer
+    # H [m]: vertical thickness of the aquifer layer ([Z08]: 250 m; Mt. Simon 300–700 m [ZB11]).
+    # 100 m is a thin, conservative choice: the pressure rise scales with 1/H.
     thickness: float = 100.0
 
-    # [m]: depth of the aquifer below the surface
+    # [m]: depth of the aquifer below the surface ([Z08]: 1200 m; USGS window 914–3962 m [B11])
     depth: float = 1500.0
 
     # ---- fluid ------------------------------------------------------------
-    # μ [Pa·s]: viscosity of the brine at reservoir temperature (~50 °C)
+    # μ [Pa·s]: viscosity of the brine at reservoir temperature (~50 °C); 0.5e-3 Pa·s in [ZB11]
     viscosity: float = 5e-4
 
     # c_t [1/Pa]: how much the rock and the brine "give" when squeezed.
-    # Rock ~4.5e-10 plus brine ~4e-10, so roughly 1e-9 per pascal.
+    # Pore compressibility ~4.5e-10 plus brine ~3.5e-10 [Z08], i.e. roughly 1e-9 per pascal.
     total_compressibility: float = 1e-9
 
     # [kg/m³]: brine density, sets the natural (hydrostatic) pressure at depth
+    # (gradient 10.3 kPa/m; [B11] uses 0.465 psi/ft = 10.5 kPa/m)
     brine_density: float = 1050.0
 
     # [kg/m³]: CO2 density at reservoir conditions (~15 MPa, ~50 °C),
-    # converts an injected mass (tonnes) into an injected volume (m³)
+    # converts an injected mass (tonnes) into an injected volume (m³).
+    # [B11] Table 1: 628 kg/m³ at 25.5 MPa and 93 °C (2440 m depth).
     co2_density: float = 700.0
 
     # ---- safety limit -----------------------------------------------------
-    # [Pa/m]: the pressure that fractures the rock grows by about 17 kPa
-    # per metre of depth (typical range 14–20 kPa/m)
+    # [Pa/m]: the pressure that fractures the rock grows with depth.
+    # [Z08]: 12.9 kPa/m (Mt. Simon) to 18.1 kPa/m (Michigan Basin);
+    # [B11]: 18.8–22.3 kPa/m at 2440 m (Eaton method).
     fracture_gradient: float = 17e3
 
     # Stay below 90 % of the fracture pressure. This is the rule the US EPA
-    # uses for CO2 injection wells (40 CFR 146.88).
+    # uses for CO2 injection wells (40 CFR 146.88(a)).
     safety_factor: float = 0.9
 
     # ---- derived quantities ----------------------------------------------
@@ -84,13 +93,18 @@ class AquiferParameters:
 
     @property
     def max_safe_pressure(self) -> float:
-        """[Pa]: the pressure must stay below this everywhere."""
+        """[Pa]: the pressure must stay below this everywhere.
+
+        With the defaults: 22.95 MPa = 1.49 × p0, i.e. an allowed rise of
+        7.5 MPa ≈ 0.5 × p0, the same criterion as [Z08].
+        """
         return self.safety_factor * self.fracture_pressure
 
     @property
     def diffusivity(self) -> float:
         """D = k / (φ μ c_t) [m²/s]: how fast pressure spreads.
 
-        After a time t the pressure signal has travelled roughly sqrt(D·t) metres.
+        After a time t the pressure signal has travelled roughly sqrt(8·D·t)
+        metres ([ZB11]); with the defaults D ≈ 1 m²/s, about 16 km in a year.
         """
         return self.permeability / (self.porosity * self.viscosity * self.total_compressibility)
